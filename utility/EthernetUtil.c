@@ -18,7 +18,11 @@
 //  <http://www.gnu.org/licenses/>.
 //
 
-#include <utility/EthernetUtil.h>
+#if defined(PARTICLE)
+   #include "EthernetUtil.h"
+#else
+   #include <utility/EthernetUtil.h>
+#endif
 
 #if defined(__ETHERNET_UTIL_BONJOUR__)
 
