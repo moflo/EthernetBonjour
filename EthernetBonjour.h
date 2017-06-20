@@ -71,9 +71,9 @@ typedef void (*BonjourServiceFoundCallback)(const char*, MDNSServiceProtocol_t, 
 
 #define  NumMDNSServiceRecords   (8)
 
-//class EthernetBonjourClass
-class EthernetBonjourClass :
-		public EthernetUDP
+class EthernetBonjourClass
+// class EthernetBonjourClass :
+// 		public EthernetUDP
 {
 private:
    MDNSDataInternal_t    _mdnsData;
@@ -144,6 +144,25 @@ public:
                                unsigned long timeout);
    void stopDiscoveringService();
    int isDiscoveringService();
+
+#if defined(PARTICLE)
+
+   // Particle compilation errors
+   UDP* _localUDP;
+   int setUDP( UDP * localUDP );
+   int stop();
+   int beginMulticast(uint8_t *IPAddr, uint16_t port);
+   int write(uint8_t *buf, int size);
+   int read(uint8_t *buf, int size);
+   int beginPacket(uint8_t * IPAddr, uint16_t port);
+   int endPacket();
+   int parsePacket();
+   int flush();
+   int remotePort();
+   int remoteIP();
+
+#endif
+
 };
 
 extern EthernetBonjourClass EthernetBonjour;
