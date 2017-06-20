@@ -1,15 +1,16 @@
 EthernetBonjour
 ===============
 
-Bonjour (ZeroConf) Library for Arduino & Teensyduino
+Fork of Bonjour (ZeroConf) Library for Arduino & Teensyduino from TrippyLightning
 
 mDNS (registering services) and DNS-SD (service discovery) has been tested and works on:
-Teensy++2 with WIZ81MJ and
-Teensy3 with WIZ820io
+Particle.io Photon boards
 
-Using Arduino 1.0.5 and Teensyduino 1.18
+Testing together with open HomeKit accessories:
 
-The newest revised code replaces all direct hardware calls to the W5100 chip with calls to EthernetUDP methods.
-This will provide much better adaptability to different Ethernet hardware. 
+      EthernetBonjour.addServiceRecord("particle._hap",
+                                   80,
+                                   MDNSServiceTCP,
+                                   "\x4sf=1\x14id=3C:33:1B:21:B3:00\x6pv=1.0\x04\c#=1\x04s#=1\x4\ff=0\x04sf=1\x0Bmd=particle");
 
-22-Dec-2015 Updated to provide compatibility with Arduino 1.6.6. Since 1.6.6. the Ethernet library provides support for multicast a pre-requisite for Bonjour to work.
+
