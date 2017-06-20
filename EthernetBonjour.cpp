@@ -23,12 +23,20 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <Arduino.h>
-#include <Ethernet.h>
-#include <EthernetUdp.h>
+#if defined(PARTICLE)
+#   include "application.h"
+#else
+#     include <Arduino.h>
+#     include <Ethernet.h>
+#     include <EthernetUdp.h>
+#endif
 
 extern "C" {
+#if defined(PARTICLE)
+   #include "EthernetUtil.h"
+#else
    #include <utility/EthernetUtil.h>
+#endif
 }
 
 #include "EthernetBonjour.h"
@@ -36,12 +44,12 @@ extern "C" {
 #define  MDNS_DEFAULT_NAME       "arduino"
 #define  MDNS_TLD                ".local"
 #define  DNS_SD_SERVICE          "_services._dns-sd._udp.local"
-#define  MDNS_SERVER_PORT        (5353)
-#define  MDNS_NQUERY_RESEND_TIME (1000)   // 1 second, name query resend timeout
-#define  MDNS_SQUERY_RESEND_TIME (10000)  // 10 seconds, service query resend timeout
-#define  MDNS_RESPONSE_TTL       (120)    // two minutes (in seconds)
+#define  MDNS_SERVER_PORT        5353
+#define  MDNS_NQUERY_RESEND_TIME 1000   // 1 second, name query resend timeout
+#define  MDNS_SQUERY_RESEND_TIME 10000  // 10 seconds, service query resend timeout
+#define  MDNS_RESPONSE_TTL       120    // two minutes (in seconds)
 
-#define  MDNS_MAX_SERVICES_PER_PACKET  (6)
+#define  MDNS_MAX_SERVICES_PER_PACKET  6
 
 //#define  _BROKEN_MALLOC_   1
 #undef _USE_MALLOC_
@@ -130,6 +138,92 @@ EthernetBonjourClass::~EthernetBonjourClass()
 {
 	this->stop();
 }
+
+#if defined(PARTICLE)
+
+int EthernetBonjourClass::setUDP( UDP * localUDP )
+{
+      this->_localUDP = localUDP;
+      return 0;
+}
+int EthernetBonjourClass::stop() 
+{
+    UDP *udp = this->_localUDP;
+    
+	udp->stop();
+
+      return 0;
+}
+int EthernetBonjourClass::beginMulticast(uint8_t *IPAddr, uint16_t port)
+{
+    UDP *udp = this->_localUDP;
+    
+	udp->begin(5353);    // was... 4097
+	udp->beginPacket({ 224, 0, 0, 251 }, 5353);
+
+      return 0;
+}
+int EthernetBonjourClass::write(uint8_t *buf, int size)
+{
+    UDP *udp = this->_localUDP;
+
+	udp->write(buf, size);
+
+      return 0;
+}
+int EthernetBonjourClass::read(uint8_t *buf, int size)
+{
+    UDP *udp = this->_localUDP;
+      
+      udp->setBuffer(size, buf); // application provided buffer
+
+      return udp->read(buf, size);
+
+}
+int EthernetBonjourClass::beginPacket(uint8_t * IPAddr, uint16_t port)
+{
+    UDP *udp = this->_localUDP;
+
+    return 0;
+}
+int EthernetBonjourClass::endPacket()
+{
+    UDP *udp = this->_localUDP;
+
+	udp->endPacket();
+
+      return 0;
+}
+int EthernetBonjourClass::parsePacket()
+{
+    UDP *udp = this->_localUDP;
+
+    return udp->parsePacket();
+}
+int EthernetBonjourClass::flush()
+{
+    UDP *udp = this->_localUDP;
+
+    udp->flush();
+
+      return 0;
+}
+int EthernetBonjourClass::remotePort()
+{
+    UDP *udp = this->_localUDP;
+
+    return udp->remotePort();
+}
+int EthernetBonjourClass::remoteIP()
+{
+  uint8_t server[] = { 192,168,15,4};
+
+  IPAddress localIP( server );    // = WiFi.localIP();
+
+//     return udp->remoteIP();
+    return (int)localIP;
+}
+#endif
 
 // return values:
 // 1 on success
@@ -1314,7 +1408,9 @@ void EthernetBonjourClass::_writeMyIPAnswerRecord(uint16_t* pPtr, uint8_t* buf, 
 
    uint8_t myIp[4];
    IPAddress myIpBuf;
+#if !defined(PARTICLE)
    myIpBuf = Ethernet.localIP();
+#endif
    myIp[0] = myIpBuf [0];
    myIp[1] = myIpBuf [1];
    myIp[2] = myIpBuf [2];
